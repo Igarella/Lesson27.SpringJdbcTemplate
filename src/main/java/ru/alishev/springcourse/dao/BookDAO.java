@@ -7,8 +7,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import ru.alishev.springcourse.models.Book;
 import ru.alishev.springcourse.models.Book;
+import ru.alishev.springcourse.models.Person;
 
 import java.util.List;
+import java.util.Optional;
 
 @Component
 @Data
@@ -30,10 +32,23 @@ public class BookDAO {
     }
 
     public void update(int id, Book updatedBook) {
-        jdbcTemplate.update("UPDATE Book SET name=?, author=?, year=? WHERE id=?", updatedBook.getTitle(), updatedBook.getAuthor(), updatedBook.getYear(), id);
+        jdbcTemplate.update("UPDATE Book SET title=?, author=?, year=? WHERE id=?", updatedBook.getTitle(), updatedBook.getAuthor(), updatedBook.getYear(), id);
     }
 
     public void delete(int id) {
         jdbcTemplate.update("DELETE FROM Book WHERE id=?", id);
+    }
+
+    public Optional<Person> getBookOwner(int id) {
+       return jdbcTemplate.query("select Person.* from Book join Person on Book.person_id = Person.id " +
+                "where book.id=?", new Object[]{id}, new BeanPropertyRowMapper<>(Person.class)).stream().findAny();
+    }
+
+    public void release(int id) {
+        jdbcTemplate.update("update Book set person_id=null where id=?", id);
+    }
+
+    public void assign(int id, Person selectedPerson) {
+        jdbcTemplate.update("update Book set person_id=? where id=?", selectedPerson.getId(), id);
     }
 }
